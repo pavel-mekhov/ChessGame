@@ -10,13 +10,13 @@ public class Pawn extends ChessPiece {
     }
 
     @Override
-    public boolean isLegalMove(int oldX, int oldY, int x, int y, boolean side) {
+    public boolean isLegalMove(int oldX, int oldY, int x, int y, boolean side, String newCellSide) {
         if (side) {
-            if (oldX == x && y - oldY <= 1 && y - oldY > 0) {
+            if (oldX == x && y - oldY <= 2 && y - oldY > 0) {
                 return true;
             }
         } else {
-            if (oldX == x && y - oldY >= 1 && y - oldY < 0) {
+            if (oldX == x && oldY - y <= 2 && oldY - y > 0) {
                 return true;
             }
         }

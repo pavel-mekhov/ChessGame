@@ -4,7 +4,7 @@ import java.awt.*;
 public class ChessApp {
     public static void main(String[] args) {
         JFrame frame = new JFrame("Chesssssssss");
-        frame.setSize(739, 762);
+        frame.setSize(1100, 762);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);

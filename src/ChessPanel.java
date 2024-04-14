@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
@@ -33,6 +32,10 @@ public class ChessPanel extends JPanel implements MouseListener, ActionListener 
     Knight[] blackKnights = new Knight[2];
 
     ChessPiece selectedPiece;
+    ChessPiece aimedPiece;
+    Cell aimedCell;
+    boolean activeSide;
+    String winnerSide;
 
 
 
@@ -67,6 +70,20 @@ public class ChessPanel extends JPanel implements MouseListener, ActionListener 
                 g.fillRect(x, y, 90, 90);
             }
         }
+        g.setColor(new Color(199, 180, 129));
+        g.fillRect(720, 0, 400, 900);
+
+        //sign about active side
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Lora", Font.ITALIC, 40));
+        String activeSideStr;
+        if (activeSide) {
+            activeSideStr = "White";
+        } else
+            activeSideStr = "Black";
+        g.drawString("Active side: " + activeSideStr, 730, 60);
+
+
         BufferedImage image;
         try {
             //white pieces
@@ -124,6 +141,15 @@ public class ChessPanel extends JPanel implements MouseListener, ActionListener 
             for (Pawn pawn:blackPawns) {
                 g.drawImage(image, pawn.x, pawn.y, this);
             }
+
+            //win side message
+            if (winnerSide != null) {
+                g.setColor(new Color(143, 119, 53));
+                g.fillRect(0,0,1100, 800);
+                g.setColor(Color.YELLOW);
+                g.setFont(new Font("Lora", Font.ITALIC, 40));
+                g.drawString(winnerSide + " is winner!", 360, 380);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -141,188 +167,80 @@ public class ChessPanel extends JPanel implements MouseListener, ActionListener 
         //white pieces
         whiteKing = new King(4*90 + 10, 10, true);
         cells[4][0].pieceOnCell = 1;
-        cells[4][0].side = true;
+        cells[4][0].side = "white";
 
         whiteQueen = new Queen(3*90 + 10, 10, true);
         cells[3][0].pieceOnCell = 2;
-        cells[3][0].side = true;
+        cells[3][0].side = "white";
 
-        for (int i = 0; i < 2; i++) {
-            whiteRooks[i] = new Rook(i*90*7 + 10, 10, true);
-            cells[i*7][0].side = true;
-            cells[i*7][0].pieceOnCell = i+3;
+        for (int i = 0, j = 0; i < 2; i++, j+=7) {
+            whiteRooks[i] = new Rook(j*90 + 10, 10, true);
+            cells[j][0].side = "white";
+            cells[j][0].pieceOnCell = i+3;
         }
 
         for (int i = 1, j = 0; i < 7; i+=5, j++) {
             whiteBishops[j] = new Bishop(i*90 + 10, 10, true);
-            cells[i][0].side = true;
+            cells[i][0].side = "white";
             cells[i][0].pieceOnCell = j+5;
         }
 
         for (int i = 2, j = 0; i < 6; i+=3, j++) {
             whiteKnights[j] = new Knight(i*90 + 10, 10, true);
-            cells[i][0].side = true;
+            cells[i][0].side = "white";
             cells[i][0].pieceOnCell = j+7;
         }
 
         for (int i = 0; i < 8; i++) {
             whitePawns[i] = new Pawn(90*i + 10, 100, true);
-            cells[i][1].side = true;
+            cells[i][1].side = "white";
             cells[i][1].pieceOnCell = i+9;
         }
 
         //black pieces
-        blackKing = new King(4*90 + 10, 7*90 + 10, true);
+        blackKing = new King(4*90 + 10, 7*90 + 10, false);
         cells[4][7].pieceOnCell = 1;
-        cells[4][7].side = false;
+        cells[4][7].side = "black";
 
-        blackQueen = new Queen(3*90 + 10, 7*90 + 10, true);
+        blackQueen = new Queen(3*90 + 10, 7*90 + 10, false);
         cells[3][7].pieceOnCell = 2;
-        cells[3][7].side = false;
+        cells[3][7].side = "black";
 
-        for (int i = 0; i < 2; i++) {
-            blackRooks[i] = new Rook(i*90*7 + 10, 7*90 + 10, true);
-            cells[i*7][7].side = false;
-            cells[i*7][7].pieceOnCell = i+3;
+        for (int i = 0, j = 0; i < 2; i++, j+=7) {
+            blackRooks[i] = new Rook(j*90 + 10, 7*90 + 10, false);
+            cells[j][7].side = "black";
+            cells[j][7].pieceOnCell = i+3;
         }
 
         for (int i = 1, j = 0; i < 7; i+=5, j++) {
-            blackBishops[j] = new Bishop(i*90 + 10, 7*90 + 10, true);
-            cells[i][7].side = false;
+            blackBishops[j] = new Bishop(i*90 + 10, 7*90 + 10, false);
+            cells[i][7].side = "black";
             cells[i][7].pieceOnCell = j+5;
         }
 
         for (int i = 2, j = 0; i < 6; i+=3, j++) {
-            blackKnights[j] = new Knight(i*90 + 10, 7*90 + 10, true);
-            cells[i][7].side = false;
+            blackKnights[j] = new Knight(i*90 + 10, 7*90 + 10, false);
+            cells[i][7].side = "black";
             cells[i][7].pieceOnCell = j+7;
         }
 
         for (int i = 0; i < 8; i++) {
-            blackPawns[i] = new Pawn(90*i + 10, 6*90 + 10, true);
-            cells[i][6].side = false;
+            blackPawns[i] = new Pawn(90*i + 10, 6*90 + 10, false);
+            cells[i][6].side = "black";
             cells[i][6].pieceOnCell = i+9;
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
+        //refactoring coordinates to format of cells' array [0-7][0-7]
         int x = (e.getX()/90);
         int y = (e.getY()/90);
-        if (cells[x][y].side) {
-            switch (cells[x][y].pieceOnCell) {
-                case 0 :
-                    break;
-                case 1 :
-                    selectedPiece = whiteKing;
-                    break;
-                case 2 :
-                    selectedPiece = whiteQueen;
-                    break;
-                case 3 :
-                    selectedPiece = whiteRooks[0];
-                    break;
-                case 4 :
-                    selectedPiece = whiteRooks[1];
-                    break;
-                case 5 :
-                    selectedPiece = whiteBishops[0];
-                    break;
-                case 6 :
-                    selectedPiece =  whiteBishops[1];
-                    break;
-                case 7 :
-                    selectedPiece = whiteKnights[0];
-                    break;
-                case 8 :
-                    selectedPiece = whiteKnights[1];
-                    break;
-                case 9 :
-                    selectedPiece = whitePawns[0];
-                    break;
-                case 10 :
-                    selectedPiece = whitePawns[1];
-                    break;
-                case 11 :
-                    selectedPiece = whitePawns[2];
-                    break;
-                case 12 :
-                    selectedPiece = whitePawns[3];
-                    break;
-                case 13 :
-                    selectedPiece = whitePawns[4];
-                    break;
-                case 14 :
-                    selectedPiece = whitePawns[5];
-                    break;
-                case 15 :
-                    selectedPiece = whitePawns[6];
-                    break;
-                case 16 :
-                    selectedPiece = whitePawns[7];
-                    break;
-
-            }
-        } else {
-            switch (cells[x][y].pieceOnCell) {
-                case 0 :
-                    break;
-                case 1 :
-                    selectedPiece = blackKing;
-                    break;
-                case 2 :
-                    selectedPiece = blackQueen;
-                    break;
-                case 3 :
-                    selectedPiece = blackRooks[0];
-                    break;
-                case 4 :
-                    selectedPiece = blackRooks[1];
-                    break;
-                case 5 :
-                    selectedPiece = blackBishops[0];
-                    break;
-                case 6 :
-                    selectedPiece =  blackBishops[1];
-                    break;
-                case 7 :
-                    selectedPiece = blackKnights[0];
-                    break;
-                case 8 :
-                    selectedPiece = blackKnights[1];
-                    break;
-                case 9 :
-                    selectedPiece = blackPawns[0];
-                    break;
-                case 10 :
-                    selectedPiece = blackPawns[1];
-                    break;
-                case 11 :
-                    selectedPiece = blackPawns[2];
-                    break;
-                case 12 :
-                    selectedPiece = blackPawns[3];
-                    break;
-                case 13 :
-                    selectedPiece = blackPawns[4];
-                    break;
-                case 14 :
-                    selectedPiece = blackPawns[5];
-                    break;
-                case 15 :
-                    selectedPiece = blackPawns[6];
-                    break;
-                case 16 :
-                    selectedPiece = blackPawns[7];
-                    break;
-
-            }
-        }
+        selectedPiece = selectPiece(x, y);
         System.out.println("figure on the cell: " + cells[x][y].pieceOnCell + cells[x][y].side);
     }
 
@@ -332,15 +250,37 @@ public class ChessPanel extends JPanel implements MouseListener, ActionListener 
         int y = (e.getY()/90);
         int oldX = (selectedPiece.x-10)/90;
         int oldY = (selectedPiece.y-10)/90;
-        if (x != oldX || y != oldY) { //without this part of code if you click in one cell with game piece it will be just deleted
-            if (selectedPiece.isLegalMove(oldX, oldY, x, y, selectedPiece.side)) {
-                cells[x][y].pieceOnCell = cells[oldX][oldY].pieceOnCell;
-                cells[x][y].side = cells[oldX][oldY].side;
-                cells[oldX][oldY].pieceOnCell = 0;
-                cells[oldX][oldY].side = false;
-                selectedPiece.x = (x*90)+10;
-                selectedPiece.y = (y*90)+10;
-                selectedPiece = null;
+        aimedCell = cells[x][y];
+
+        if (x != oldX || y != oldY) { //checks if piece was moved
+            if (selectedPiece.side == activeSide) { //checks if moved piece is from active side
+                if (selectedPiece.isLegalMove(oldX, oldY, x, y, selectedPiece.side, aimedCell.side)) { //checks if it's ok to move piece the way user tries
+                    //"eating" game pieces
+                    if (cells[x][y].pieceOnCell >0) { //checks if cell empty
+                        if (!cells[x][y].side.equals(cells[oldX][oldY].side)) { //checks if piece on cell is from different side
+                            aimedPiece = selectPiece(x, y); //sets aimed piece
+                            if (selectedPiece.side) { //sorts black and white pieces to different "storage"
+                                aimedPiece.y = 381;
+                            } else {
+                                aimedPiece.y = 150;
+                            }
+                            aimedPiece.x = 690 + cells[x][y].pieceOnCell*22;
+                        }
+                    }
+                    if (!cells[oldX][oldY].side.equals(cells[x][y].side)) { //checks if cell is already taken
+                        cells[x][y].pieceOnCell = cells[oldX][oldY].pieceOnCell;
+                        cells[x][y].side = cells[oldX][oldY].side;
+                        cells[oldX][oldY].pieceOnCell = 0;
+                        cells[oldX][oldY].side = "empty";
+                        selectedPiece.x = (x*90)+10;
+                        selectedPiece.y = (y*90)+10;
+                        selectedPiece = null;
+
+                        //switching active side
+                        isKingAlive();
+                        activeSide = !activeSide;
+                    }
+                }
             }
         }
         System.out.println("figure on the cell: " + cells[x][y].pieceOnCell + cells[x][y].side);
@@ -361,12 +301,129 @@ public class ChessPanel extends JPanel implements MouseListener, ActionListener 
         running = true;
         timer = new Timer(50, this);
         timer.start();
+        activeSide = true;
+    }
+
+    public void isKingAlive() {
+        if (whiteKing.x > 700) {
+            winnerSide = "Black side";
+        } else if (blackKing.x > 700) {
+            winnerSide = "White side";
+        }
+        running = false;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (running) {
-
+            isKingAlive();
         } repaint();
+    }
+
+    public ChessPiece selectPiece(int x, int y) { //method to return link to game piece by its coordinates
+        if (cells[x][y].side.equals("white")) { //white side pieces
+            switch (cells[x][y].pieceOnCell) {
+                case 1 -> {
+                    return whiteKing;
+                }
+                case 2 -> {
+                    return whiteQueen;
+                }
+                case 3 -> {
+                    return whiteRooks[0];
+                }
+                case 4 -> {
+                    return whiteRooks[1];
+                }
+                case 5 -> {
+                    return whiteBishops[0];
+                }
+                case 6 -> {
+                    return whiteBishops[1];
+                }
+                case 7 -> {
+                    return whiteKnights[0];
+                }
+                case 8 -> {
+                    return whiteKnights[1];
+                }
+                case 9 -> {
+                    return whitePawns[0];
+                }
+                case 10 -> {
+                    return whitePawns[1];
+                }
+                case 11 -> {
+                    return whitePawns[2];
+                }
+                case 12 -> {
+                    return whitePawns[3];
+                }
+                case 13 -> {
+                    return whitePawns[4];
+                }
+                case 14 -> {
+                    return whitePawns[5];
+                }
+                case 15 -> {
+                    return whitePawns[6];
+                }
+                case 16 -> {
+                    return whitePawns[7];
+                }
+            }
+        } else { //black side pieces
+            switch (cells[x][y].pieceOnCell) {
+                case 1 -> {
+                    return blackKing;
+                }
+                case 2 -> {
+                    return blackQueen;
+                }
+                case 3 -> {
+                    return blackRooks[0];
+                }
+                case 4 -> {
+                    return blackRooks[1];
+                }
+                case 5 -> {
+                    return blackBishops[0];
+                }
+                case 6 -> {
+                    return blackBishops[1];
+                }
+                case 7 -> {
+                    return blackKnights[0];
+                }
+                case 8 -> {
+                    return blackKnights[1];
+                }
+                case 9 -> {
+                    return blackPawns[0];
+                }
+                case 10 -> {
+                    return blackPawns[1];
+                }
+                case 11 -> {
+                    return blackPawns[2];
+                }
+                case 12 -> {
+                    return blackPawns[3];
+                }
+                case 13 -> {
+                    return blackPawns[4];
+                }
+                case 14 -> {
+                    return blackPawns[5];
+                }
+                case 15 -> {
+                    return blackPawns[6];
+                }
+                case 16 -> {
+                    return blackPawns[7];
+                }
+            }
+        }
+        return null;
     }
 }

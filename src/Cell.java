@@ -1,8 +1,9 @@
 public class Cell {
     Cell() {
         pieceOnCell = 0;
+        side = "empty";
     }
-    public boolean side; //true - white, false - black
+    public String side; //true - white, false - black
     public int pieceOnCell;
     /*  0 = none
         1 = King

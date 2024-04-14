@@ -11,8 +11,7 @@ public class ChessPiece {
         this.y = y;
     }
 
-    public boolean isLegalMove(int oldX, int oldY, int x, int y, boolean side) {
-        return false;
+    public boolean isLegalMove(int oldX, int oldY, int x, int y, boolean side, String  newCellSide) {
+        return true;
     }
-
 }
